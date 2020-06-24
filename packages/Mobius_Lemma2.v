@@ -20,6 +20,7 @@ Import Def.
 
 Import Lemmas.
 
+(* 定理2证明的关键引理， 描述 x sub Y -> x0 sub Y -> PowerSet Y 中有唯一元素 y, 满足 x cup x0 = y *)
 Lemma Summ_Test_Union_Eq: forall (x x0 Y: list nat),
 In x (PowerSet Y) -> In x0 (PowerSet Y) -> NoDup Y -> 
 Summ_Of_List (list nat) (test_eq_union_Z x x0) (PowerSet Y) = 1%Z.

@@ -126,6 +126,7 @@ Proof.
     reflexivity.
 Qed.
 
+(* 定理三的关键引理之一 *)
 Lemma Add_sum_one:
   forall n i, i <= n ->
   Summ_From_n_to_0 n (Nat_eq_Z i) = 1%Z.
@@ -155,6 +156,7 @@ Proof.
       lia.
 Qed.
 
+(* (-1)的幂的基本运算律 *)
 Fact MinusOnePower_Add: forall (a b: nat), Z.mul (MinusOnePower a) (MinusOnePower b) = MinusOnePower (a + b).
 Proof.
   intros.
@@ -197,6 +199,7 @@ Proof.
   - simpl; apply IHS.
 Qed.
 
+(* 三个定理证明的核心引理，表明交换求和顺序后结果不变 *)
 Lemma Exchange_Summ (U: Type) (f g: U -> U -> Z):
   (forall (x y: U), f x y = g y x) -> 
   (forall (S1 S2: list U), Summ_Of_List U (fun (I: U) => Summ_Of_List U (f I) S2) S1 =
@@ -226,6 +229,7 @@ Proof.
     reflexivity.
 Qed.
 
+(* 关键引理之一， 表明两个求和列表互为排列，则求和结果不变 *)
 Lemma Permutation_Summ: forall (U: Type) (l1 l2: list U) (f: U -> Z),
   Permutation l1 l2 -> Summ_Of_List U f l1 = Summ_Of_List U f l2.
 Proof.
@@ -261,7 +265,7 @@ Proof.
   - reflexivity.
 Qed.
 
-
+(* 证明定理一中约束条件内移的关键引理 *)
 Lemma App_Complement: forall (subL L : list nat),
   (forall x: nat, In x subL -> In x L) -> NoDup subL -> NoDup L ->
   Permutation (subL ++ (filter (fun n:nat => negb (Test_In n subL)) L)) L.
@@ -353,6 +357,7 @@ Proof.
     exact H9.
 Qed.
 
+(* 上面引理的不同类型版本 *)
 Lemma App_Complement_list: forall (subL L : list (list nat)),
   (forall x: list nat, In x subL -> In x L) -> NoDup subL -> NoDup L ->
   Permutation (subL ++ (filter (fun l: (list nat) => negb (test_in_list_b l subL)) L)) L.
@@ -457,6 +462,7 @@ Proof.
     exact H9.
 Qed.
 
+(* 证明三个定理的关键引理, 用于替换求和函数 *)
 Lemma Summ_f_g: forall (U:Type) (f g: U -> Z) (L: list U),
   (forall x:U, In x L -> f x = g x) -> Summ_Of_List _ f L = Summ_Of_List _ g L.
 Proof.
@@ -478,6 +484,7 @@ Proof.
     lia.
 Qed.
 
+(* 约束条件内移， 证明定理一的关键步骤 *)
 Lemma Summ_constraint_X_Y: forall (X Y: list (list nat)) (f: list nat -> Z),
   NoDup X ->
   NoDup Y ->
@@ -540,6 +547,7 @@ Proof.
   induction l; simpl;[reflexivity|lia].
 Qed.
 
+(* 二项式定理的特殊版本， summ (x in powerset X) (-1)^|x| = [X == emptyset] *)
 Lemma Binomial_minusone: forall (l: list nat),
   (l = nil -> Summ_Of_List _ MinusOnetoLen (PowerSet l) = 1%Z) /\
   (l <> nil -> Summ_Of_List _ MinusOnetoLen (PowerSet l) = 0%Z) .
@@ -585,6 +593,7 @@ Proof.
     exact H5.
 Qed.
 
+(* -1 方幂的性质之一 *)
 Fact MinusOnePower_Double: forall n: nat, MinusOnePower (n + n) = 1%Z.
 Proof.
   intros.
@@ -598,6 +607,7 @@ Proof.
     lia.
 Qed.
 
+(* -1 方幂的运算律之一 *)
 Fact MinusOnePower_Minus_to_Add: forall (n m : nat), m <= n -> MinusOnePower (n-m) = MinusOnePower (n+m).
 Proof.
   intros.
@@ -772,6 +782,7 @@ Proof.
     * apply IHl;[apply H1| apply H0].
 Qed.
 
+(* 用于约束条件内移，一个更简易的版本 *)
 Lemma constrain_app:
   forall (U:Type) F G (l: list U),
   (forall x, {F x} + {~ F x})-> (forall x, F x <-> G x = true) ->
@@ -801,6 +812,7 @@ Proof.
       + apply IHl.
 Qed.
 
+(*一个不重的列表，它的幂集也不重*)
 Lemma PowerSet_NoDup: forall l, NoDup l -> NoDup (PowerSet l).
 Proof.
   intros. induction l; simpl.
@@ -826,7 +838,8 @@ Proof.
       pose proof H4 x H1.
       tauto.
 Qed.
-   
+
+(*一个不重的列表，它的幂集中的元素也不重*)
 Lemma PowerSet_Element_NoDup: 
   forall l subl ,NoDup l -> In subl (PowerSet l) -> NoDup subl.
 Proof.
@@ -850,7 +863,7 @@ Proof.
       apply IHl;[tauto|apply H0].
 Qed.
 
-
+(*X幂集中的元素是X的子集*)
 Lemma PowerSet_Subset: forall l subl, In subl (PowerSet l) -> Subset _ subl l.
 Proof.
   induction l; intros.
@@ -928,12 +941,14 @@ Proof.
 Qed.
 
 
+(*In a l -> 能从 l 中分离出 a*)
 Lemma In_Permutation: forall (a: nat) (l: list nat), 
   In a l -> exists (l': list nat), Permutation l (a::l').
 Proof.
   apply In_Permutation_pre.
 Qed.
 
+(* 这条引理的条件有些强，实际上不需要 NoDup l, 在Mobius_Lemma3中有条件更弱的版本 *)
 Lemma Subset_length: forall (l subl: list nat), NoDup l -> NoDup subl -> Subset _ subl l -> 
   Datatypes.length subl <= Datatypes.length l.
 Proof.
@@ -1069,6 +1084,7 @@ Proof.
       tauto.
 Qed.
 
+(*在幂集中等价于是子序列*)
 Lemma inpowerset_subseq_eq:
   forall x y,
   In x (PowerSet y) <-> subseq x y.
@@ -1115,7 +1131,7 @@ Proof.
   apply subseq_trans with b;[apply H|apply H0].
 Qed.
 
-
+(*subl 在 l 的幂集中, 则 subl 的幂集是 l 幂集的子集*)
 Lemma Subset_PowerSet: forall l subl, 
   NoDup l -> NoDup subl -> In subl (PowerSet l) -> Subset _ (PowerSet subl) (PowerSet l).
 Proof.
@@ -1172,7 +1188,7 @@ Proof.
     apply H, IHl.
 Qed.
 
-  
+(*约束条件内移, 是为方便定理1证明而单列出的特殊情况*)
 Fact Constraint_in:
 forall (x X: list nat) (f: list nat -> Z),
 NoDup X ->
@@ -1189,6 +1205,7 @@ Proof.
       - eapply Subset_PowerSet; [apply H | eapply PowerSet_Element_NoDup; [apply H | apply H0] | tauto].
 Qed.
 
+(*定理1证明的重要化简步骤*)
 Fact Summ_test_eq:
 forall (X: list nat) (f: list nat -> Z), NoDup X ->
   Summ_Of_List (list nat) (fun x : list nat => (Z.mul (f x) (test_list_eq_Z x X)%Z)) (PowerSet X) = f X.
@@ -1308,6 +1325,7 @@ Proof.
        tauto.
 Qed.
 
+(*证明定理1的关键步骤，将约束条件外移，从而构造出二项式求和*)
 Lemma Bi_constraint_in_out: forall (x X: list nat),
 NoDup X -> In x (PowerSet X) ->
 Summ_Of_List (list nat)
@@ -1528,6 +1546,7 @@ Proof.
     * tauto.
 Qed.
 
+(*定理1化简的关键引理, 描述 filter ? (PowerSet X) 和 PowerSet (filter ? X) 之间的对应关系 *)
 Lemma Binomial_map_powerset: forall (x X: list nat),
 NoDup X -> In x (PowerSet X) ->
 Summ_Of_List (list nat) (fun x0 : list nat => MinusOnePower (Datatypes.length x0)) 
@@ -1606,6 +1625,7 @@ Proof.
     rewrite <- MinusOnePower_Add; lia.
 Qed.
 
+(* 对求和式提公因式 *)
 Lemma Out_coef: forall (U:Type) (L: list U) (f: U -> Z) (c: Z),
 Summ_Of_List _ (fun x:U => Z.mul c (f x)) L = Z.mul c (Summ_Of_List _ f L).
 Proof.

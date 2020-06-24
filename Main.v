@@ -19,6 +19,22 @@ Import Lemmas.
 Import Lemma2.
 Import Lemma3.
 
+(*关键定义*)
+Print Zeta.
+Locate Zeta.
+Print Mobius.
+Locate Mobius.
+
+(*关键引理*)
+Check Constraint_in.
+Locate Constraint_in.
+Check Exchange_Summ.
+Locate Exchange_Summ.
+Check Binomial_inner_constraint_new.
+Locate Binomial_inner_constraint_new.
+Check Binomial_minusone.
+Locate Binomial_minusone.
+
 (* Theorem 10.11 f(X) = (mu zeta f) (X) = (zeta mu f) (X) *)
 Theorem Inversion_formula: forall (f: (list nat) -> Z) (X: list nat), 
   NoDup X ->
@@ -197,6 +213,14 @@ Proof.
       lia.
 Qed.
 
+
+(*关键定义*)
+Print Cover_Product_new.
+Locate Cover_Product_new.
+(*关键引理*)
+Check Summ_Test_Union_Eq.
+Locate Summ_Test_Union_Eq.
+
 (* Theorem 10.13 The zeta transform of the cover product is the pointwise product of the zeta-transformed arguments, zeta (f *c g) = (zeta f) * (zeta g) *)
 (* Cover_Product_new 的第一个参数是全集(求和的枚举范围), 特别地, 计算 (f *c g) (X) 时，传入的全集是 PowerSet X *)
 Theorem BreakUpLemma: forall (f g: list nat -> Z) (Y: list nat), 
@@ -225,6 +249,19 @@ Proof.
   rewrite Out_coef.
   lia.
 Qed.
+
+
+(*关键定义*)
+Print Convolution_new.
+Locate Convolution_new.
+Print Check_i.
+Locate Check_i.
+
+(*关键引理*)
+Check Add_sum_one.
+Locate Add_sum_one.
+Check Union_Length_Empty.
+Locate Union_Length_Empty.
 
 (* Theorem 10.15 Fast subset convolution *)
 (* f_k(S) := f(S) * [|S| = k].

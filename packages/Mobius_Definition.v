@@ -15,6 +15,7 @@ Notation "x :: y" := (cons x y)
 Notation "[ ]" := nil.
 Notation "[ x ; .. ; y ]" := (cons x .. (cons y []) ..).
 
+(* 向一个S: list (list nat) 中的每一项 (list nat) 的头部添加一个x: nat *)
 Fixpoint AddOne (x: nat) (S: list (list nat)): list (list nat) :=
   match S with
   | nil => nil
@@ -23,17 +24,7 @@ Fixpoint AddOne (x: nat) (S: list (list nat)): list (list nat) :=
 .
 (* Compute AddOne 1%nat [[2;3;4];[2;5]]. *)
 
-
-(* AddMany l S 表示对S: list (list nat) 进行操作，将其中每一个 list nat 拼接在另一个指定的 list nat后面 ， 更多信息参见注释掉的Compute语句*)
-Fixpoint AddMany (l: list nat) (S: list (list nat)): list (list nat) :=
-  match S with
-  | nil => nil
-  | cons l' S' => cons (app l l') (AddMany l S')
-  end
-.
-(* Compute AddMany [1;2;3] [[5;6;7];[8;9]]. *)
-
-(*对l: list nat, 生成它的幂集*)
+(*对 l: list nat, 生成它的幂集*)
 Fixpoint PowerSet (l: list nat): list (list nat) :=
   match l with
   | nil => cons nil nil
@@ -42,13 +33,7 @@ Fixpoint PowerSet (l: list nat): list (list nat) :=
 .
 (* Compute PowerSet [1;2;3;4]. *)
 
-(* 定义list nat的元素数量 *)
-Definition Card (U:Type) (l: list U) :=
-  Datatypes.length l.
-
-(* Compute Card _ (PowerSet [1;2;3;4]). *)
-
-(*定义负一的n次方*)
+(*定义 -1 的 n 次方*)
 Fixpoint MinusOnePower (n: nat): Z :=
   match n with
   | O => 1
@@ -56,15 +41,14 @@ Fixpoint MinusOnePower (n: nat): Z :=
   end
 .
 
-
-(*对一个给定的列表进行求和: 对列表中的元素应用函数f后求和*)
+(*对一个给定的列表进行求和: 对列表中的元素应用函数 f 后求和*)
 Fixpoint Summ_Of_List (U: Type) (f: U -> Z) (L: list U) : Z := 
   match L with
   | nil => 0
   | cons x L' => (f x) + (Summ_Of_List _ f L')
   end.
 
-(*Zeta 变换*)
+(*Zeta 变换: 对X的所有子集构成的列表求和*)
 Definition Zeta (f: (list nat) -> Z) (X: list nat): Z :=
   Summ_Of_List _ f (PowerSet X).
 
@@ -77,102 +61,6 @@ Definition Mobius (f: (list nat) -> Z) (X: list nat): Z :=
   Summ_Of_List _ (Mu f (Datatypes.length X)) (PowerSet X).
 
 
-(* pair *)
-Definition fst {A B: Type} (p : A * B) : A :=
-  match p with
-  | pair x y => x
-  end.
-
-Definition snd {A B: Type} (p : A * B) : B :=
-  match p with
-  | pair x y => y
-  end.
-
-Notation "( a , b )" := (pair a b).
-(* *)
-
-(* 对二元组的列表进行求和 *)
-Fixpoint Summ_Of_Pairs (f g: list nat -> Z) (L: list (list nat * list nat)): Z :=
-  match L with
-  | nil => 0
-  | cons l L' => (f (fst l)) * (g (snd l)) + Summ_Of_Pairs f g L'
-  end
-.
-
-(*定义 nat 是否在 list nat 中*)
-Fixpoint IsIn (S: list nat) (x: nat): bool :=
-  match S with
-  | nil => false
-  | cons x' S' => 
-    if Nat.eq_dec x x' 
-      then true
-      else IsIn S' x
-  end
-.
-(* Compute IsIn [1;2;3;5] 4.*)
-
-(* 定义集合的减法 A - B *)
-Fixpoint SetMinus (A B: list nat): list nat := 
-  match A with
-  | nil => nil
-  | cons x A' => 
-    if IsIn B x
-      then SetMinus A' B
-      else cons x (SetMinus A' B)
-  end
-.
-(* Compute SetMinus [1;2;3;4;5] [2;5]. *)
-
-(* S := {X | A <= X <= B} *)
-Fixpoint SuperSet (A B: list nat): list (list nat) := 
-  AddMany A (PowerSet (SetMinus B A)).
-
-(* 生成卷积运算中，要求和的二元组列表 *)
-Fixpoint Convolution_List (Y: list (list nat)) (V: list nat): list (list nat * list nat) := 
-  match Y with 
-  | nil => nil
-  | cons A Y' => cons (A, SetMinus V A) (Convolution_List Y' V)
-  end
-.
-
-(* 卷积的定义 *)
-Definition Convolution (f g: list nat -> Z) (Y: list nat) : Z := 
-  Summ_Of_Pairs f g (Convolution_List (PowerSet Y) Y).
-
-(* 求和一个给定集合 A cover 的集合列表，该集合列表中的任意集合B, 满足 (A subset V) -> A cup B = V *)
-Definition Cover_List (A V: list nat): list (list nat) := 
-  AddMany (SetMinus V A) (PowerSet A).
-
-(* 对上面生成的列表操作，把其中每一个集合变成集合A,B的二元组 *)
-Fixpoint Cover_Pair_List (A: list nat) (B: list (list nat)): list (list nat * list nat) :=
-  match B with
-  | nil => nil
-  | cons b B' => cons (A, b) (Cover_Pair_List A B')
-  end
-.
-
-(* 生成cover product的求和运算需要的二元组列表 *)
-Fixpoint CoverProduct_List (Y: list (list nat)) (V: list nat): list (list nat * list nat) :=
-  match Y with
-  | nil => nil
-  | cons A Y' => app (Cover_Pair_List A (Cover_List A V)) (CoverProduct_List Y' V)
-  end
-.
-
-
-(* cover product 的定义 *)
-Definition CoverProduct (f g: list nat -> Z) (Y: list nat) : Z := 
-  Summ_Of_Pairs f g (CoverProduct_List (PowerSet Y) Y).
-  
-  
-  (* 一条辅助定义，对应书中的 f_k(X) 的定义*)
-Definition Check (f: list nat -> Z) (k: nat) (X: list nat) : Z := 
-  if Nat.eq_dec (Card _ X) k
-  then f X
-  else 0
-.
-
-
 (* 对自然数i, 从n到0遍历求和*)
 Fixpoint Summ_From_n_to_0 (i: nat) (f: nat -> Z): Z :=
   match i with 
@@ -181,9 +69,7 @@ Fixpoint Summ_From_n_to_0 (i: nat) (f: nat -> Z): Z :=
   end
 .
 
-Definition CoverProduct_n_i (f g: list nat -> Z) (Y: list nat) (n i: nat) : Z :=
-  CoverProduct (Check f i) (Check g (n-i)) Y.
-
+(* nat 是否在 list nat 中 可判定 *)
 Lemma test_in (a: nat) (l: list nat): {In a l} + {~ In a l}.
 Proof.
   apply In_dec.
@@ -212,12 +98,19 @@ Proof.
   + destruct (test_in a l);[inversion H| tauto].
 Qed.
 
+
+(* 将 In a l 转化为 Z 类型: 1%Z or 0%Z *)
 Definition Test_In_Z (n: nat) (l: list nat): Z :=
   if test_in n l then 1 else 0.
 
+(* 子集的定义， 不要求顺序 *)
 Definition Subset (U: Type) (Y X: list U): Prop :=
   forall u: U, In u Y -> In u X.
   
+  
+Definition always_zero (x: list nat): Z := 0%Z.
+
+(* In (list nat) (list (list nat)) 可判定 *) 
 Lemma test_in_list (x: list nat) (X: list (list nat)): {In x X} + {~ In x X}.
 Proof.
   apply In_dec.
@@ -225,9 +118,6 @@ Proof.
   apply list_eq_dec.
   apply Nat.eq_dec.
 Qed.
-
-
-Definition always_zero (x: list nat): Z := 0%Z.
 
 Definition test_in_list_Z (x: list nat) (X: list (list nat)): Z :=
   if (test_in_list x X) then 1%Z else 0%Z.
@@ -253,6 +143,8 @@ Proof.
   - destruct (test_in_list x l);tauto. 
   - destruct (test_in_list x l);[inversion H| tauto].
 Qed.
+
+(* f(x) * [x \subset X] *)
 Definition f_x_test_in (f: list nat -> Z) (X:list (list nat)) (x: list nat): Z :=  
   Z.mul (f x) (test_in_list_Z x X).
   
@@ -279,11 +171,13 @@ Qed.
 Definition MinusOnetoLen (x: list nat): Z :=
   MinusOnePower (Datatypes.length x).
 
+(* 子序列的定义 *)
 Inductive subseq {A: Type} : list A -> list A -> Prop :=
   | sub_nil  l : subseq [] l
   | sub_take x l1 l2 (H : subseq l1 l2) : subseq (x :: l1) (x :: l2)
   | sub_skip x l1 l2 (H : subseq l1 l2) : subseq l1 (x :: l2).
 
+(* 传递性 *)
 Theorem subseq_trans : forall (A: Type) (l1 l2 l3 : list A),
   subseq l1 l2 ->
   subseq l2 l3 ->
@@ -315,11 +209,7 @@ Proof.
   - apply sub_skip, IHsubseq.
 Qed.
     
-(** Hint: remember to use [simpl] to simplify expressions when necessary. *)
-(* FILL IN HERE *) 
-(** [] *)
 
-(** **** Exercise: 3 stars, standard (subseq_map)  *)
 Theorem subseq_map : forall (A B: Type) (f: A -> B) (l1 l2: list A),
   subseq l1 l2 ->
   subseq (map f l1) (map f l2).
@@ -342,6 +232,7 @@ Proof.
     exact IHl.
 Qed.
 
+(* list nat 可判定 *)
 Lemma test_list_eq: forall (l1 l2: list nat), {l1 = l2} + {l1 <> l2}.
 Proof.
   intros.
@@ -391,6 +282,7 @@ Proof.
   destruct (test_in_list x X); [inversion H | tauto ].
 Qed.
 
+(* 集合作差, 保持原顺序 *)
 Definition MinusSet (S s: list nat) : list nat := filter (fun x => negb (Test_In x s)) S.
 
 Lemma test_eq_nat (a b: nat): {a = b} + {a <> b}.
@@ -424,6 +316,7 @@ Proof.
     * unfold Nat.eq. lia.
 Qed.
 
+(* 生成列表 [n;(n-1);...;2;1;0] *)
 Fixpoint nat_list (x:nat): list nat :=
   match x with
    | O => O :: nil
@@ -438,6 +331,7 @@ Fixpoint list_Z_sum (x:list Z): Z :=
 
 Definition list_nat_length (a: list nat) := Datatypes.length a.
 
+(* "x 是否属于 A cup B" 可判定 *)
 Lemma test_in_union (A B: list nat) (x:nat): {In x A \/ In x B} + {~ In x A /\ ~ In x B}.
 Proof.
   apply Sumbool.sumbool_or.
@@ -448,6 +342,7 @@ Qed.
 Definition test_in_union_b (A B: list nat) (x:nat) : bool := 
   if test_in_union A B x then true else false.
 
+(* A cup B = Y 的定义 (顺序不敏感) *)
 Definition Eq_Union (A B Y: list nat) : Prop :=
   forall n:nat , In n A \/ In n B <-> In n Y.
 
@@ -464,7 +359,7 @@ Proof.
   - split; intros; destruct H as [H1 H2]; [apply H1 in H0; tauto | apply H2 in H0; tauto].
 Qed.
 
-
+(* "A subset B" 可判定 *)
 Lemma test_subset (A B: list nat): {forall n:nat, In n A -> In n B} + {~ (forall n:nat, In n A -> In n B)}.
 Proof.
   induction A.
@@ -505,6 +400,7 @@ Proof.
     tauto.
 Qed.
 
+(* "A cup B = Y" 可判定 *)
 Lemma test_eq_union (A B Y: list nat): {Eq_Union A B Y} + {~ Eq_Union A B Y}.
 Proof.
   unfold Eq_Union.
@@ -534,9 +430,11 @@ Qed.
 Definition test_eq_union_Z (A B Y: list nat): Z := 
   if test_eq_union A B Y then 1%Z else 0%Z.
 
+(* 交集为空的定义 *)
 Definition Empty_Intersect (A B: list nat):Prop :=
   forall n: nat, In n A -> ~ In n B.
 
+(* "交集为空" 可判定 *)
 Lemma test_empty_intersect (A B: list nat): {Empty_Intersect A B} + {~ Empty_Intersect A B}.
 Proof.
   unfold Empty_Intersect.
@@ -570,17 +468,21 @@ Definition test_empty_intersect_Z (A B: list nat): Z :=
   if test_empty_intersect A B then 1%Z else 0%Z. 
 
 
-
+(* 关键定义: 卷积的定义 *)
+(* 第一个参数 U 是求和变量的枚举范围(全集) *)
+(* 第四个参数, 是求和条件 "A cup B = X" 中的 X *)
+(* A B 不交, 由 test_empty_intersect_Z A B 限制 *)
 Definition Convolution_new (U: list (list nat)) (f g: list nat -> Z) (X: list nat): Z := 
   Summ_Of_List _ (fun A: list nat => Summ_Of_List _ (fun B: list nat => Z.mul (Z.mul (Z.mul (f A) (g B)) (test_eq_union_Z A B X)) (test_empty_intersect_Z A B)) U) U.
 
 
-
+(* 关键定义: cover product 的定义 *)
+(* 参数含义同卷积的定义 *)
 Definition Cover_Product_new (U: list (list nat)) (f g: list nat -> Z) (X: list nat): Z :=
   Summ_Of_List _ (fun A: list nat => Summ_Of_List _ (fun B: list nat => Z.mul (Z.mul (f A) (g B)) (test_eq_union_Z A B X)) U) U. 
 
 
-
+(* filter 的结果是原列表的子序列 *)
 Lemma filter_subseq: forall (U: Type) (l: list U) (f: U -> bool),
   subseq (filter f l) l.
 Proof.
@@ -626,6 +528,7 @@ Qed.
 Definition Minus (a : Z):Z := - a.
 Definition PlusOne (a : nat): nat := a + 1.
 
+(* 对应 f_i(X) := f(X) * [|X| = i] *)
 Definition Check_i (i: nat) (f: list nat -> Z) (x: list nat) : Z := 
   Z.mul (f x) (Nat_eq_Z (Datatypes.length x) (i)).
   

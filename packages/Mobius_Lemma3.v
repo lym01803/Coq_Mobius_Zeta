@@ -17,7 +17,7 @@ Import Def.
 Import Lemmas.
 Import Lemma2.
 
-
+(*两种不同定义的等价性*)
 Lemma Summ_to_0_eq_Summ_list:
   forall n f,
   Summ_From_n_to_0 n f = Summ_Of_List nat f (nat_list n).
@@ -29,6 +29,7 @@ Proof.
     lia.
 Qed.
 
+(*交换求和顺序结果不变, Exchange_Summ 要求内外求和列表同类型, Exchange_Summ2 则不要求*)
 Lemma Exchange_Summ2 (U1 U2: Type) (f: U1 -> U2 -> Z) (g: U2 -> U1 -> Z):
   (forall (x: U1) (y: U2), f x y = g y x) -> 
   (forall (S1: list U1) (S2: list U2), Summ_Of_List U1 (fun (I: U1) => Summ_Of_List U2 (f I) S2) S1 =
@@ -158,6 +159,7 @@ Proof.
   tauto.
 Qed.
 
+(* 定理3证明的关键引理 *)
 Lemma Union_Length_Empty: forall (A B X: list nat),
   NoDup A -> 
   NoDup B ->
