@@ -206,7 +206,7 @@ Proof.
   apply H1.
 Qed.
 
-
+(* 比 n 大的数, 不在 [n;n-1;n-2;...;2;1] 列表中 *)
 Lemma Bign_not_in_list_n_1: forall (i n: nat), n < i ->  ~ In i (list_n_1 n).
 Proof.
   intros.
@@ -219,6 +219,7 @@ Proof.
     tauto.
 Qed.
 
+(* 这个特殊化的列表不重复 *)
 Lemma NoDup_list_n_1: forall n:nat, NoDup (list_n_1 n).
 Proof.
   intros.
@@ -232,6 +233,7 @@ Proof.
     pose proof Bign_not_in_list_n_1 _ _ H0; tauto.
 Qed.
 
+(* 序列不重，则子序列不重 *)
 Lemma subseq_NoDup: forall (l' l: list nat), subseq l' l -> NoDup l -> NoDup l'.
 Proof.
   intros.
@@ -239,6 +241,7 @@ Proof.
   eapply PowerSet_Element_NoDup;[apply H0| apply H].
 Qed.
 
+(* summ f + summ g = summ (f+g) *)
 Lemma Summ_f_plus_g: forall (U: Type) (l: list U) (f g: U -> Z),
   Z.add (Summ_Of_List _ f l) (Summ_Of_List _ g l) = Summ_Of_List _ (fun u => Z.add (f u) (g u)) l.
 Proof.
@@ -249,6 +252,7 @@ Proof.
     lia.
 Qed.
 
+(* 如果x是X的子序列, x中元素使f恒为true, 那么x是 filter f X的子序列 *)
 Lemma subseq_filter_subseq: forall (x X: list nat) (f: nat -> bool),
   subseq x X -> (forall n:nat, In n x -> f n = true) -> subseq x (filter f X).
 Proof.

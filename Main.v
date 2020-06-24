@@ -343,6 +343,7 @@ Proof.
   reflexivity.
 Qed.
 
+(* Fast Zeta/Mobius transform half_0 证明了递推式的其中一种情况 (xj = 0) (对应于 ~ In j X) *)
 Theorem Fast_Mobius_Transform_0: forall (j n:nat) (X: list nat) (f: list nat -> Z),
 In X (PowerSet (list_n_1 n)) -> (0 < j) -> (j <= n) -> ~ In j X -> 
 Zeta_j j f X = Zeta_j (j-1) f X.
@@ -371,7 +372,7 @@ Proof.
     tauto.
 Qed.
 
-
+(* Fast Zeta/Mobius transform half_1 证明了递推式的其中一种情况 (xj = 1) (对应于 In j X) *)
 Theorem Fast_Mobius_Transform_1: forall (j n:nat) (X: list nat) (f: list nat -> Z),
 In X (PowerSet (list_n_1 n)) -> (0 < j) -> (j <= n) -> In j X -> 
   Zeta_j j f X = 
@@ -513,26 +514,38 @@ Proof.
   lia.
 Qed.
 
+(* 证明了 zeta_j n 和 原先 zeta 变换的结果是一致的, 全集V是 list_n_1 n, 函数变量 X 是 (list_n_1 n) 的子集 *)
 Theorem Zeta_n_eq_Zeta:
-  forall n f,
-  Zeta_j n f (list_n_1 n) = Zeta f (list_n_1 n).
+  forall (n:nat) (f: list nat -> Z) (X: list nat),
+  subseq X (list_n_1 n) ->
+  Zeta_j n f X = Zeta f X.
 Proof.
   intros;unfold Zeta_j, Zeta.
   erewrite Summ_f_g;[reflexivity|].
   intros.
-  assert(test_check_j_Z n x (list_n_1 n) = 1%Z).
+  assert(test_check_j_Z n x X = 1%Z).
   {
     unfold test_check_j_Z.
     destruct test_check_j;[reflexivity|].
-    assert ((forall n0 : nat, n < n0 -> In n0 x <-> In n0 (list_n_1 n))).
+    assert ((forall n0 : nat, n < n0 -> In n0 x <-> In n0 X)).
     {
       split; intros.
-      - pose proof In_PowerSet_In n1 x (list_n_1 n) H1 H; tauto.
-      - pose proof Bign_not_in_list_n_1 n1 n H0; tauto.
+      - apply inpowerset_subseq_eq in H0 as H3.
+        eapply subseq_in; [apply H3 | tauto].
+      - assert (forall n0: nat, n < n0 -> In n0 x <-> In n0 X).
+        {
+          intros.
+          pose proof Bign_not_in_list_n_1 n2.
+          apply H4 in H3 as H5.
+          split; intros.
+          * pose proof In_PowerSet_In n2 x X H6 H0; tauto.
+          * pose proof subseq_in _ _ _ H H6; tauto.
+        }
+        tauto.
     }
     tauto.
   }
-  rewrite H0.
+  rewrite H1.
   lia.
 Qed.
 

@@ -532,6 +532,7 @@ Definition PlusOne (a : nat): nat := a + 1.
 Definition Check_i (i: nat) (f: list nat -> Z) (x: list nat) : Z := 
   Z.mul (f x) (Nat_eq_Z (Datatypes.length x) (i)).
   
+(* 可判性辅助证明 *)
 Lemma test_check_j_half (j:nat) (x y: list nat): 
 {forall n:nat, j < n -> (In n x -> In n y)} + 
 {~ forall n:nat, j < n -> (In n x -> In n y)}.
@@ -554,6 +555,7 @@ Proof.
       tauto.
 Qed.
 
+(* 快速变换定义依赖的可判性 *)
 Lemma test_check_j (j:nat) (x y: list nat): 
 {forall n:nat, j < n -> (In n x <-> In n y)} + 
 {~ forall n:nat, j < n -> (In n x <-> In n y)}.
@@ -569,12 +571,15 @@ Proof.
   eapply sumbool_equiv; [ | |apply H | apply H1]; apply test_check_j_half.
 Qed. 
 
+(* 快速变换 zeta_j 依赖的定义 *)
 Definition test_check_j_Z (j: nat) (x y: list nat): Z :=
   if (test_check_j j x y) then 1%Z else 0%Z.
 
+(* 快速变换 zeta_j 的定义, 它表示 > j 的部分固定, 枚举 <= j 的部分的子集 *)
 Definition Zeta_j (j:nat) (f: list nat -> Z) (X: list nat) : Z :=
   Summ_Of_List _ (fun x:list nat => Z.mul (f x) (test_check_j_Z j x X)) (PowerSet X).
 
+(* 生成一个用于描述快速计算算法的特殊化的正整数集合 *)
 Fixpoint list_n_1 (n:nat): list nat :=
 match n with 
 | O => nil
