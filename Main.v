@@ -343,4 +343,198 @@ Proof.
   reflexivity.
 Qed.
 
+Theorem Fast_Mobius_Transform_0: forall (j n:nat) (X: list nat) (f: list nat -> Z),
+In X (PowerSet (list_n_1 n)) -> (0 < j) -> (j <= n) -> ~ In j X -> 
+Zeta_j j f X = Zeta_j (j-1) f X.
+Proof.
+  unfold Zeta_j; intros.
+  apply Summ_f_g; intros.
+  unfold test_check_j_Z.
+  destruct (test_check_j j x X); destruct (test_check_j (j-1) x X); [lia| | | lia].
+  - assert (forall n: nat, j - 1 < n -> In n x <-> In n X).
+    {
+      intros.
+      destruct (classic (j = n1)).
+      * subst.
+        split; [ | tauto].
+        apply subseq_in, inpowerset_subseq_eq; tauto.
+      * assert (j < n1). { lia. }
+        apply i in H6; tauto.
+    }
+    tauto.
+  - assert (forall n: nat, j < n -> In n x <-> In n X).
+    {
+      intros.
+      assert (j - 1 < n1). { lia. }
+      apply i in H5; tauto.
+    }
+    tauto.
+Qed.
+
+
+Theorem Fast_Mobius_Transform_1: forall (j n:nat) (X: list nat) (f: list nat -> Z),
+In X (PowerSet (list_n_1 n)) -> (0 < j) -> (j <= n) -> In j X -> 
+  Zeta_j j f X = 
+  Z.add 
+  (Zeta_j (j-1) f X) 
+  (Zeta_j (j-1) f (filter (fun n0:nat => negb (Nat_eq_b j n0)) X)).
+Proof.
+  unfold Zeta_j; intros.
+  pose proof Summ_constraint_X_Y.
+  assert (NoDup X). { eapply PowerSet_Element_NoDup; [ | apply H]. apply NoDup_list_n_1. }
+  assert (NoDup (PowerSet X)). { apply PowerSet_NoDup. tauto. } 
+  assert (In (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X) (PowerSet X)).
+  { apply inpowerset_subseq_eq. apply filter_subseq. }
+  assert (NoDup (PowerSet (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X))).
+  { 
+    apply PowerSet_NoDup.
+    eapply PowerSet_Element_NoDup; [ | ].
+    2:{ apply inpowerset_subseq_eq. apply filter_subseq. }
+    tauto.
+  }
+  assert (Subset (list nat) (PowerSet (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X)) (PowerSet X)).
+  {
+    eapply Subset_PowerSet; [tauto | | tauto].
+    eapply subseq_NoDup; [ | apply H4].
+    apply filter_subseq.
+  }
+  pose proof H3 (PowerSet X) _ (fun x : list nat =>
+    Z.mul (f x) (test_check_j_Z (j - 1) x (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X))) H5 H7 H8.
+  rewrite H9.
+  clear H9 H3.
+  rewrite Summ_f_plus_g.
+  unfold f_x_test_in; simpl.
+  erewrite Summ_f_g; [reflexivity | intros; simpl].
+  assert (test_check_j_Z j x X = Z.add (test_check_j_Z (j-1) x X) (Z.mul (test_check_j_Z (j - 1) x (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X)) (test_in_list_Z x
+   (PowerSet (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X))))).
+  {
+    unfold test_in_list_Z.
+    destruct (test_in_list x (PowerSet (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X))); simpl.
+    - destruct (classic (In j x)).
+      apply inpowerset_subseq_eq in i as H10.
+      pose proof subseq_in _ _ j H10 H9.
+      apply filter_In in H11.
+      destruct H11.
+      unfold Nat_eq_b in H12.
+      destruct (Nat.eq_dec j j); [inversion H12 | tauto].
+      assert (test_check_j_Z (j-1) x X = 0%Z).
+      {
+        unfold test_check_j_Z.
+        destruct (test_check_j (j-1) x X); [ | lia].
+        assert (j - 1 < j). { lia. }
+        apply i0 in H10.
+        tauto.
+      }
+      rewrite H10; simpl.
+      assert (forall a:Z, Z.mul a 1%Z = a). { lia. }
+      rewrite H11.
+      unfold test_check_j_Z.
+      destruct (test_check_j j x X); destruct (test_check_j (j - 1) x (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X)); [lia | | | lia].
+      -- assert ((forall n : nat,
+      j - 1 < n ->
+      In n x <-> In n (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X))).
+         {
+           intros.
+           split; intros.
+           apply filter_In.
+           assert (In n1 X).
+           { apply inpowerset_subseq_eq in H3 as H14.
+             eapply subseq_in. apply H14. tauto. }
+           split.
+           * tauto.
+           * unfold Nat_eq_b.
+             destruct (Nat.eq_dec j n1); [ | tauto].
+             rewrite <- e in H13; tauto.
+           * apply filter_In in H13.
+             destruct H13.
+             unfold Nat_eq_b in *.
+             destruct (Nat.eq_dec j n1); [inversion H14 | ].
+             assert (j < n1). { lia. }
+             apply i0 in H15.
+             tauto.
+        }
+        tauto.
+      -- assert (forall n: nat, j < n -> In n x <-> In n X).
+         {
+           intros.
+           split; intros.
+           assert (In n1 X).
+           { apply inpowerset_subseq_eq in H3 as H14.
+             eapply subseq_in. apply H14. tauto. }
+           tauto.
+           assert (j-1 < n1). { lia. }
+           pose proof i0 _ H14.
+           apply H15.
+           apply filter_In.
+           split; [tauto | ].
+           unfold Nat_eq_b.
+           destruct (Nat.eq_dec j n1); [lia | tauto].
+         }
+         tauto.
+    - assert (forall a b : Z, Z.add a (Z.mul b 0%Z) = a). { lia. }
+      rewrite H9.
+      destruct (classic (In j x)).
+      -- unfold test_check_j_Z.
+         destruct (test_check_j j x X); destruct (test_check_j (j-1) x X); [lia | | | lia].
+         * assert (forall n:nat, j-1 < n -> In n x <-> In n X).
+           {
+             intros; split; intros.
+             destruct (classic (j = n2)); [subst; tauto| ].
+             assert (j < n2). { lia. }
+             apply i in H14; tauto.
+             destruct (classic (j = n2)); [subst; tauto| ].
+             assert (j < n2). { lia. }
+             apply i in H14; tauto.
+           }
+           tauto.
+         * assert (forall n : nat, j < n -> In n x <-> In n X).
+           {
+             intros; split; intros.
+             assert (j - 1 < n2). { lia. }
+             apply i in H13; tauto.
+             assert (j - 1 < n2). { lia. }
+             apply i in H13; tauto.
+           }
+           tauto.
+      -- assert (In x (PowerSet (filter (fun n0 : nat => negb (Nat_eq_b j n0)) X))).
+         {
+           apply inpowerset_subseq_eq.
+           apply subseq_filter_subseq.
+           * apply inpowerset_subseq_eq, H3.
+           * intros.
+             unfold Nat_eq_b.
+             destruct (Nat.eq_dec j n1).
+             ** rewrite <- e in H11; tauto.
+             ** tauto.
+         }
+         tauto.
+   }     
+  rewrite H9.
+  lia.
+Qed.
+
+Theorem Zeta_n_eq_Zeta:
+  forall n f,
+  Zeta_j n f (list_n_1 n) = Zeta f (list_n_1 n).
+Proof.
+  intros;unfold Zeta_j, Zeta.
+  erewrite Summ_f_g;[reflexivity|].
+  intros.
+  assert(test_check_j_Z n x (list_n_1 n) = 1%Z).
+  {
+    unfold test_check_j_Z.
+    destruct test_check_j;[reflexivity|].
+    assert ((forall n0 : nat, n < n0 -> In n0 x <-> In n0 (list_n_1 n))).
+    {
+      split; intros.
+      - pose proof In_PowerSet_In n1 x (list_n_1 n) H1 H; tauto.
+      - pose proof Bign_not_in_list_n_1 n1 n H0; tauto.
+    }
+    tauto.
+  }
+  rewrite H0.
+  lia.
+Qed.
+
+
 End Fast_Zeta_Mobius_Transforms.

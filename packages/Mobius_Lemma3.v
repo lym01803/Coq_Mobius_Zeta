@@ -196,5 +196,74 @@ Proof.
     apply H7, H5.
 Qed.
 
+Lemma In_PowerSet_In:
+  forall a b X,
+  In a b -> In b (PowerSet X) -> In a X.
+Proof.
+  intros.
+  apply inpowerset_subseq_eq in H0.
+  pose proof subseq_in b X a H0 H.
+  apply H1.
+Qed.
+
+
+Lemma Bign_not_in_list_n_1: forall (i n: nat), n < i ->  ~ In i (list_n_1 n).
+Proof.
+  intros.
+  induction n.
+  - simpl; tauto.
+  - simpl.
+    unfold not; intros.
+    destruct H0; [lia | ].
+    assert (n < i). { lia. }
+    tauto.
+Qed.
+
+Lemma NoDup_list_n_1: forall n:nat, NoDup (list_n_1 n).
+Proof.
+  intros.
+  induction n.
+  - simpl; apply NoDup_nil.
+  - simpl.
+    apply NoDup_cons_iff.
+    split; [ | tauto].
+    unfold not; intros.
+    assert (n < S n). { lia. }
+    pose proof Bign_not_in_list_n_1 _ _ H0; tauto.
+Qed.
+
+Lemma subseq_NoDup: forall (l' l: list nat), subseq l' l -> NoDup l -> NoDup l'.
+Proof.
+  intros.
+  apply inpowerset_subseq_eq in H.
+  eapply PowerSet_Element_NoDup;[apply H0| apply H].
+Qed.
+
+Lemma Summ_f_plus_g: forall (U: Type) (l: list U) (f g: U -> Z),
+  Z.add (Summ_Of_List _ f l) (Summ_Of_List _ g l) = Summ_Of_List _ (fun u => Z.add (f u) (g u)) l.
+Proof.
+  intros.
+  induction l.
+  - simpl. lia.
+  - simpl.
+    lia.
+Qed.
+
+Lemma subseq_filter_subseq: forall (x X: list nat) (f: nat -> bool),
+  subseq x X -> (forall n:nat, In n x -> f n = true) -> subseq x (filter f X).
+Proof.
+  intros.
+  induction H; simpl.
+  - apply sub_nil.
+  - assert (In x (x::l1)). { apply in_eq. }
+    pose proof H0 x H1.
+    rewrite H2; simpl.
+    apply sub_take, IHsubseq.
+    intros.
+    assert (In n (x::l1)). { apply in_cons. tauto. }
+    apply H0 in H4; tauto.
+  - pose proof IHsubseq H0.
+    destruct (f x); [apply sub_skip; tauto | tauto]. 
+Qed.
 
 End Lemma3.

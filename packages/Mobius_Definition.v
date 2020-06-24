@@ -532,4 +532,56 @@ Definition PlusOne (a : nat): nat := a + 1.
 Definition Check_i (i: nat) (f: list nat -> Z) (x: list nat) : Z := 
   Z.mul (f x) (Nat_eq_Z (Datatypes.length x) (i)).
   
+Lemma test_check_j_half (j:nat) (x y: list nat): 
+{forall n:nat, j < n -> (In n x -> In n y)} + 
+{~ forall n:nat, j < n -> (In n x -> In n y)}.
+Proof.
+  induction x.
+  - left. intros. apply in_nil in H0. tauto.
+  - destruct IHx.
+    * destruct (le_lt_dec a j).
+      ** left; intros.
+         apply in_inv in H0.
+         destruct H0; [rewrite H0 in l; lia | apply i in H0; tauto].
+      ** destruct (test_in a y).
+         *** left; intros. apply in_inv in H0. destruct H0; [subst; tauto | apply i in H0; tauto].
+         *** right; intros. destruct (classic (forall n0 : nat, j < n0 -> In n0 (a :: x) -> In n0 y)); [ | tauto].
+             assert (In a (a::x)). {apply in_eq. } apply H in H0; [tauto | lia].
+    * right.
+      destruct (classic (forall n0 : nat, j < n0 -> In n0 (a :: x) -> In n0 y)); [ | tauto].
+      assert (forall n : nat, j < n -> In n x -> In n y).
+      { intros. assert (In n0 (a::x)). { apply in_cons. tauto. } pose proof H n0 H0 H2; tauto. }
+      tauto.
+Qed.
+
+Lemma test_check_j (j:nat) (x y: list nat): 
+{forall n:nat, j < n -> (In n x <-> In n y)} + 
+{~ forall n:nat, j < n -> (In n x <-> In n y)}.
+Proof.
+  assert ((forall n:nat, j < n -> (In n x <-> In n y)) <-> (forall n:nat, j < n -> In n x -> In n y) /\ (forall n:nat, j < n -> In n y -> In n x)).
+  {
+    split; intros.
+    - split; intros; apply H; tauto.
+    - split; intros; destruct H as [lym zkp]; [apply lym; tauto | apply zkp; tauto].
+  }
+  assert (forall A B C:Prop, (A <-> B /\ C) -> (~ A <-> ~ B \/ ~ C)). { intros. tauto. }
+  pose proof H0 _ _ _ H.
+  eapply sumbool_equiv; [ | |apply H | apply H1]; apply test_check_j_half.
+Qed. 
+
+Definition test_check_j_Z (j: nat) (x y: list nat): Z :=
+  if (test_check_j j x y) then 1%Z else 0%Z.
+
+Definition Zeta_j (j:nat) (f: list nat -> Z) (X: list nat) : Z :=
+  Summ_Of_List _ (fun x:list nat => Z.mul (f x) (test_check_j_Z j x X)) (PowerSet X).
+
+Fixpoint list_n_1 (n:nat): list nat :=
+match n with 
+| O => nil
+| S n' => n :: (list_n_1 n')
+end.
+
+Definition Nat_eq_b (n m : nat) : bool :=
+  if Nat.eq_dec n m then true else false.
+
 End Def.
