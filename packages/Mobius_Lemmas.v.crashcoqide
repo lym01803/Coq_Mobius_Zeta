@@ -1,0 +1,84 @@
+Require Import Coq.Lists.List.
+Require Import Coq.Relations.Relation_Operators.
+Require Import Coq.Relations.Relation_Definitions.
+Require Import Coq.micromega.Psatz.
+Require Export Coq.ZArith.ZArith.
+Require Export Coq.Strings.String.
+Require Export Coq.Logic.Classical.
+Require Import Permutation.
+Require Import ListDec.
+Require Import FL.Mobius_Definition.
+
+Module Lemmas.
+
+Notation "x :: y" := (cons x y)
+                     (at level 60, right associativity).
+Notation "[ ]" := nil.
+Notation "[ x ; .. ; y ]" := (cons x .. (cons y []) ..).
+
+Searc
+
+Lemma overflow_0:
+  forall n i, i > n -> forall x, x<= n -> Nat_eq_Z x i = 0%Z.
+Proof.
+  intros. induction n.
+  - inversion H0.
+    unfold Nat_eq_Z.
+    destruct (test_eq_nat 0 i);[lia|reflexivity].
+  - inversion H0. 
+    * rewrite <- H1 in H.
+      rewrite <- H1.
+      unfold Nat_eq_Z.
+      destruct (test_eq_nat x i);[lia|reflexivity].
+    * assert(i > n). { lia. }
+      apply IHn;[apply H3|apply H2].
+Qed.
+
+Lemma summ_overflow:
+  forall n i, i > n -> Summ_From_n_to_0 n (Nat_eq_Z i) = 0 %Z.
+Proof.
+  induction n;intros.
+  - simpl.
+    apply neq_and_testeq_false.
+    unfold Nat.eq. lia.
+  - simpl.
+    assert (Nat_eq_Z i (S n) = 0%Z).
+    {
+      apply neq_and_testeq_false.
+      unfold Nat.eq. lia.
+    }
+    rewrite H0.
+    assert (i > n). {lia. }
+    pose proof IHn i H1.
+    rewrite H2.
+    reflexivity.
+Qed.
+
+Lemma Add_sum_one:
+  forall n i, i <= n ->
+  Summ_From_n_to_0 n (Nat_eq_Z i) = 1%Z.
+Proof.
+  intros.
+  induction n.
+  - inversion H; subst.
+    simpl. apply Eq_and_test_eq.
+    unfold Nat.eq. lia.
+  - inversion H.
+    * simpl.
+      assert (Nat_eq_Z (S n) (S n) = 1%Z).
+      {
+        apply Eq_and_test_eq.
+        unfold Nat.eq. lia.
+      }
+      assert (Summ_From_n_to_0 n (Nat_eq_Z (S n)) = 0%Z).
+      { apply summ_overflow. lia. }
+      lia.
+    * simpl. 
+      assert (Nat_eq_Z i (S n) = 0%Z).
+      {
+        apply neq_and_testeq_false.
+        unfold Nat.eq. lia.
+      }
+      apply IHn in H1.
+      lia.
+Qed.
