@@ -343,6 +343,14 @@ Proof.
   reflexivity.
 Qed.
 
+(* 关键定义 *)
+Print Zeta_j.
+Locate Zeta_j.
+
+(* 引理 该部分主要是不断地 destruct 因此除了可判性之外不涉及其他重要的引理 *)
+Check test_check_j.
+Locate test_check_j.
+
 (* Fast Zeta/Mobius transform half_0 证明了递推式的其中一种情况 (xj = 0) (对应于 ~ In j X) *)
 Theorem Fast_Mobius_Transform_0: forall (j n:nat) (X: list nat) (f: list nat -> Z),
 In X (PowerSet (list_n_1 n)) -> (0 < j) -> (j <= n) -> ~ In j X -> 
