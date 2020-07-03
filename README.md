@@ -23,5 +23,3 @@ Mobius_Definition.v -> Mobius_Lemmas.v -> Mobius_Lemma2.v -> Mobius_Lemma3.v -> 
 
 Theorem 10.14 and 10.16 is about time complexity, we do not proof them. 
 
-<img src="C:\Users\27931\AppData\Roaming\Typora\typora-user-images\image-20200625030733160.png" alt="image-20200625030733160" style="zoom: 25%;" />
-
